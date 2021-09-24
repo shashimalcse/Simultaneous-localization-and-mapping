@@ -20,7 +20,7 @@ class Tracker(object):
             self.process_frame(frame_id)    
         self.prev_frame = frame
     def process_first_frame(self):   
-        pts = cv2.goodFeaturesToTrack(np.mean(self.cur_frame, axis=2).astype(np.uint8), 100, qualityLevel=0.01, minDistance=7,blockSize = 7)
+        pts = cv2.goodFeaturesToTrack(np.mean(self.cur_frame, axis=2).astype(np.uint8), 3000, qualityLevel=0.01, minDistance=7)
         kps = [cv2.KeyPoint(x=f[0][0],y=f[0][1],size=20) for f in pts]
         self.kps_ref, self.des_ref = self.orb.compute(self.cur_frame,kps)
         self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
@@ -31,7 +31,13 @@ class Tracker(object):
         kps_cur_matched = kps_cur[idx.copy()]  
         self.kps_ref = kps_ref_matched
         self.kps_cur = kps_cur_matched
-    
+        if self.kps_ref.shape[0] < 2000:
+            pts = cv2.goodFeaturesToTrack(np.mean(self.cur_frame, axis=2).astype(np.uint8), 3000, qualityLevel=0.01, minDistance=7)
+            kps = [cv2.KeyPoint(x=f[0][0],y=f[0][1],size=20) for f in pts]
+            self.kps_ref, self.des_ref = self.orb.compute(self.cur_frame,kps)
+            self.kps_ref = np.array([x.pt for x in self.kps_ref], dtype=np.float32) 
+        self.kps_ref = self.kps_cur
+        self.des_ref = self.des_cur
 
 
 cap = cv2.VideoCapture('0.hevc')
@@ -47,8 +53,9 @@ while(cap.isOpened()):
                 p1, p2 = pts 
                 a,b = p1.astype(int).ravel()
                 c,d = p2.astype(int).ravel()
-                cv2.line(frame, (a,b),(c,d), (0,255,0), 1)
-                cv2.circle(frame,(c,d),1, (0,0,255),-1)
+                cv2.line(frame, (a,b),(c,d), (0,255,0), 2)
+                cv2.circle(frame,(c,d),1, (0,0,255),4)
+           
         cv2.imshow('Frame',frame)
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
