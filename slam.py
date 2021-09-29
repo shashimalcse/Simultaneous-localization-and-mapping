@@ -22,18 +22,6 @@ class OrbDetector(object):
     def denormalize(self,pt):
         ret =  np.dot(self.K,np.array([pt[0],pt[1],1.0]))  
         return int(round(ret[0])),int(round(ret[1])) 
-    def extract(self,img):
-        kps = []
-        gy = img.shape[0]//self.GY    
-        gx = img.shape[1]//self.GX
-        for i in range(0,img.shape[0],gy):
-            for k in range(0,img.shape[1],gx):
-                chunk = img[i:i+gy,k:k+gx]
-                kp = self.orb.detect(chunk,None)
-                for point in kp:
-                    point.pt = (point.pt[0]+k,point.pt[1]+i)
-                    kps.append(point)
-        return kps  
     def extract2(self,img):
         pts = cv2.goodFeaturesToTrack(np.mean(img, axis=2).astype(np.uint8), 3000, qualityLevel=0.01, minDistance=7)
         kps = [cv2.KeyPoint(x=f[0][0],y=f[0][1],size=20) for f in pts]
